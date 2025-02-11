@@ -15,6 +15,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class HumanLikeInteraction:
+
+
+    def get_my_username(self):
+        """Get the logged-in user's username"""
+        try:
+            # Find the profile link element that contains the username
+            profile_element = self.wait.until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, '[data-testid="AppTabBar_Profile_Link"]')
+            ))
+            # Extract username from the href attribute
+            href = profile_element.get_attribute('href')
+            return href.split('/')[-1]  # Get the username from the URL
+        except Exception as e:
+            logger.error(f"Error getting username: {str(e)}")
+            return None
+
+
     def __init__(self):
         self.driver = None
         self.wait = None
@@ -29,6 +46,9 @@ class HumanLikeInteraction:
         self.driver = webdriver.Chrome(options=chrome_options)
         self.wait = WebDriverWait(self.driver, 15)
         self.actions = ActionChains(self.driver)
+        self.my_username = self.get_my_username()  
+
+
 
         # marketting comments
         self.marketing_tweets = [
@@ -249,6 +269,17 @@ class HumanLikeInteraction:
             #     logger.info("Naturally skipping this post")
             #     return
 
+            username_element = post.find_element(
+                By.CSS_SELECTOR, 
+                '[data-testid="User-Name"] a'
+            )
+            post_username = username_element.get_attribute('href').split('/')[-1]
+            
+            # Skip if it's your own post
+            if post_username == self.my_username:
+                logger.info("Skipping own post")
+                return
+
             # Ensure post is visible
             if not self.safe_scroll_into_view(post):
                 return
@@ -339,6 +370,8 @@ class HumanLikeInteraction:
             time.sleep(random.uniform(2, 4))
 
 
+
+
     def main_loop(self):
         """Main interaction loop with improved error handling"""
         try:
@@ -360,6 +393,30 @@ class HumanLikeInteraction:
                     time.sleep(5)
                     continue
 
+                # Check if all visible posts are your own
+                all_own_posts = True
+                for post in posts[:3]:  # Check first few posts
+                    try:
+                        username_element = post.find_element(
+                            By.CSS_SELECTOR, 
+                            '[data-testid="User-Name"] a'
+                        )
+                        post_username = username_element.get_attribute('href').split('/')[-1]
+                        if post_username != self.my_username:
+                            all_own_posts = False
+                            break
+                    except:
+                        all_own_posts = False
+                        break
+
+                # If all visible posts are your own, scroll more
+                if all_own_posts:
+                    self.driver.execute_script(
+                        f"window.scrollBy(0, {random.randint(600, 900)});"
+                    )
+                    time.sleep(random.uniform(3, 5))
+                    continue
+
                 # Process random number of posts
                 num_posts = random.randint(1, 3)
                 for post in posts[:num_posts]:
@@ -375,73 +432,13 @@ class HumanLikeInteraction:
         except Exception as e:
             logger.error(f"Main loop error: {str(e)}")
 
-
-# def main():
-#     bot = HumanLikeInteraction()
-#     try:
-#         bot.attach_to_chrome()
-#         bot.main_loop()
-#     except Exception as e:
-#         logger.error(f"Fatal error: {str(e)}")
-def main_loop(self):
-    """Main interaction loop with improved error handling"""
+def main():
+    bot = HumanLikeInteraction()
     try:
-        while True:
-            # Find posts with retry mechanism
-            posts = None
-            for _ in range(3):
-                try:
-                    posts = self.wait.until(EC.presence_of_all_elements_located(
-                        (By.CSS_SELECTOR, 'article[data-testid="tweet"]')))
-                    if posts:
-                        break
-                except:
-                    self.driver.execute_script("window.scrollBy(0, 300);")
-                    time.sleep(2)
-
-            if not posts:
-                logger.error("No posts found")
-                time.sleep(5)
-                continue
-
-            # Check if all visible posts are your own
-            all_own_posts = True
-            for post in posts[:3]:  # Check first few posts
-                try:
-                    username_element = post.find_element(
-                        By.CSS_SELECTOR, 
-                        '[data-testid="User-Name"] a'
-                    )
-                    post_username = username_element.get_attribute('href').split('/')[-1]
-                    if post_username != self.my_username:
-                        all_own_posts = False
-                        break
-                except:
-                    all_own_posts = False
-                    break
-
-            # If all visible posts are your own, scroll more
-            if all_own_posts:
-                self.driver.execute_script(
-                    f"window.scrollBy(0, {random.randint(600, 900)});"
-                )
-                time.sleep(random.uniform(3, 5))
-                continue
-
-            # Process random number of posts
-            num_posts = random.randint(1, 3)
-            for post in posts[:num_posts]:
-                self.interact_with_post(post)
-                time.sleep(random.uniform(10, 20))
-
-            # Scroll with random pause
-            self.driver.execute_script(
-                f"window.scrollBy(0, {random.randint(300, 600)});"
-            )
-            time.sleep(random.uniform(5, 10))
-
+        bot.attach_to_chrome()
+        bot.main_loop()
     except Exception as e:
-        logger.error(f"Main loop error: {str(e)}")
+        logger.error(f"Fatal error: {str(e)}")
 
 if __name__ == "__main__":
     main()
