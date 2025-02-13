@@ -38,13 +38,15 @@ class HumanLikeInteraction:
         self.actions = None
         self.interaction_count = 0
         self.session_start_time = datetime.now()
+        self.last_reload_time = datetime.now()  # Add this line
+
 
     def attach_to_chrome(self):
         """Attach to existing Chrome instance with human-like behavior enabled"""
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
         self.driver = webdriver.Chrome(options=chrome_options)
-        self.wait = WebDriverWait(self.driver, 15)
+        self.wait = WebDriverWait(self.driver, 10)
         self.actions = ActionChains(self.driver)
         self.my_username = self.get_my_username()  
 
@@ -52,26 +54,26 @@ class HumanLikeInteraction:
 
         # marketting comments
         self.marketing_tweets = [
-            "Think you know your partner better than they know      you? 👀 Play Who Knows Better? and put your love to     the test! https://who-knows-better.fun",
-    
-            "Date night idea unlocked! Answer fun couple        questions and see who reigns supreme in love    knowledge! ❤️ Play now: https://who-knows-better.    fun",
-    
-            "Valentine's Challenge: Who knows who better? Play      this couples quiz & find out! #ValentinesDay        https://who-knows-better.fun",
-    
-            "Couples quiz alert! Test your relationship         knowledge with your partner. Who will win? Take the         quiz: https://who-knows-better.fun",
-    
-            "What's my favorite movie? What's my dream      vacation? ✈️ Think you know? Prove it in this fun       couples quiz! Start now: https://who-knows-better.     fun",
+            "Think you know your partner better than they know you? (: <3 Play Who Knows Better? and put your love to the test! https://who-knows-better.fun",
 
-            "Valentine's Date Night Hack! Take our fun couples      quiz and make your night unforgettable! ❤️ Play     here: https://who-knows-better.fun",
-    
-            "Challenge your partner! Who really listens better?         Play this interactive relationship test now! 🎮         https://who-knows-better.fun",
-    
-            "❤️ Love is a game... and we made it a quiz! See        how well you really know each other! Play Who Knows     Better? https://who-knows-better.fun",
-    
-            "Who's the relationship expert? Play this fun quiz      and find out who really knows better! Start here:       https://who-knows-better.fun",
-    
-            "Couples, assemble! It's time to test your love         knowledge. Who's got the best memory? Play now:         https://who-knows-better.fun"
-        ]
+            "Date night idea unlocked! <3 Answer fun couple questions and see who reigns supreme in love knowledge! Play now: https://who-knows-better.fun",
+
+            "Valentine's Challenge: Who knows who better? :) Play this couples quiz & find out! #ValentinesDay https://who-knows-better.fun",
+
+            "Couples quiz alert! <3 Test your relationship knowledge with your partner. Who will win? :) Take the quiz: https://who-knows-better.fun",
+
+            "What's my favorite movie? :) What's my dream vacation? Think you know? <3 Prove it in this fun couples quiz! Start now: https://who-knows-better.fun",
+
+            "Valentine's Date Night Hack! <3 Take our fun couples quiz and make your night unforgettable! :) Play here: https://who-knows-better.fun",
+
+            "Challenge your partner! :) Who really listens better? <3 Play this interactive relationship test now! https://who-knows-better.fun",
+
+            "Love is a game... and we made it a quiz! <3 See how well you really know each other! :) Play Who Knows Better? https://who-knows-better.fun",
+
+            "Who's the relationship expert? :) Play this fun quiz and find out who really knows better! <3 Start here: https://who-knows-better.fun",
+
+            "Couples, assemble! <3 It's time to test your love knowledge. :) Who's got the best memory? Play now: https://who-knows-better.fun"
+        ] 
 
 
     def human_activity_simulation(self):
@@ -203,7 +205,7 @@ class HumanLikeInteraction:
         session_duration = (datetime.now() - self.session_start_time).total_seconds() / 3600
         
         # End session if too long or too many interactions
-        if session_duration > 2 or self.interaction_count > 20:  # 2 hours or 20 interactions
+        if session_duration > 2 or self.interaction_count > 50:  # 2 hours or 20 interactions
             logger.info("Session limits reached, taking a long break...")
             time.sleep(random.uniform(1800, 3600))  # 30-60 minute break
             self.session_start_time = datetime.now()
@@ -262,7 +264,7 @@ class HumanLikeInteraction:
         """Enhanced post interaction with more human-like behavior"""
         try:
             # Check session limits
-            self.check_session_limits()
+            # self.check_session_limits()
             
             # Random skip with variable probability
             # if random.random() < 0.4:
@@ -360,7 +362,7 @@ class HumanLikeInteraction:
                 self.interaction_count += 1
                 
                 # Variable delay after posting
-                time.sleep(random.uniform(8, 15))
+                time.sleep(random.uniform(4, 8))
                 
                 # Sometimes perform additional human activities
                 self.human_activity_simulation()
@@ -376,6 +378,17 @@ class HumanLikeInteraction:
         """Main interaction loop with improved error handling"""
         try:
             while True:
+
+                current_time = datetime.now()
+                time_since_reload = (current_time - self.last_reload_time).total_seconds()
+                
+                if time_since_reload >= 1800:  # 1800 seconds = 30 minutes
+                    logger.info("Performing scheduled page reload")
+                    self.driver.refresh()
+                    self.last_reload_time = current_time
+                    time.sleep(random.uniform(5, 10))  # Wait for page to load
+                    continue
+                    
                 # Find posts with retry mechanism
                 posts = None
                 for _ in range(3):
@@ -421,7 +434,7 @@ class HumanLikeInteraction:
                 num_posts = random.randint(1, 3)
                 for post in posts[:num_posts]:
                     self.interact_with_post(post)
-                    time.sleep(random.uniform(10, 20))
+                    time.sleep(random.uniform(5, 10))
 
                 # Scroll with random pause
                 self.driver.execute_script(
